@@ -92,10 +92,10 @@ export function NavMain({
                 <SidebarMenuButton
                   asChild
                   tooltip={item.title}
-                  className={cn(
+                  className={`${cn(
                     isActive &&
-                    "bg-primary h-10 text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                  )}
+                    "bg-primary  text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                  )} h-10`}
                 >
                   <Link href={item.url}>
                     {item.icon && <item.icon />}

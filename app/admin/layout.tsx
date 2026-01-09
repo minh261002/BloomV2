@@ -23,7 +23,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                         <SidebarTrigger className="-ml-1" />
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4 py-10">{children}</div>
+                <div className="flex flex-1 flex-col gap-4 p-4 py-10 bg-gray-100">
+                    <div className="w-full mx-auto max-w-7xl">
+                        {children}
+                    </div>
+                </div>
             </SidebarInset>
         </SidebarProvider>
     );

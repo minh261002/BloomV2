@@ -65,6 +65,25 @@ export function CloudinaryUpload({
           cropping: false,
           clientAllowedFormats: ["jpg", "jpeg", "png", "gif", "webp"],
           maxImageFileSize: 5000000, // 5MB
+          styles: {
+            palette: {
+              window: "#FFFFFF",
+              windowBorder: "#E5E7EB",
+              tabIcon: "#0078FF",
+              menuIcons: "#5A616A",
+              textDark: "#000000",
+              textLight: "#FFFFFF",
+              link: "#0078FF",
+              action: "#0078FF",
+              inactiveTabIcon: "#9CA3AF",
+              error: "#EF4444",
+              inProgress: "#0078FF",
+              complete: "#10B981",
+              sourceBg: "#F9FAFB",
+            },
+          },
+          // Fix z-index conflict with shadcn Dialog
+          zIndex: 99999,
         }}
         onSuccess={onUpload}
         onError={(error) => {
@@ -265,6 +284,8 @@ export function CloudinaryMultipleUpload({
               sourceBg: "#E4EBF1",
             },
           },
+          // Fix z-index conflict with shadcn Dialog
+          zIndex: 99999,
         }}
         onSuccess={onUpload}
         onError={(error) => {

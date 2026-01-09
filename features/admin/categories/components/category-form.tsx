@@ -207,7 +207,7 @@ export function CategoryForm({
                                     setValue("status", value as ActiveStatus)
                                 }
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
