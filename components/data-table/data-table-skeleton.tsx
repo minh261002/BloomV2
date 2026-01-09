@@ -30,15 +30,13 @@ export function DataTableSkeleton({
 }: DataTableSkeletonProps) {
     return (
         <div className="space-y-4">
-            {/* Toolbar Skeleton */}
             {showToolbar && (
                 <div className="flex items-center justify-between">
                     <div className="flex flex-1 items-center space-x-2">
-                        {/* Search Skeleton */}
                         {searchable && (
                             <Skeleton className="h-8 w-[150px] lg:w-[250px]" />
                         )}
-                        {/* Filter Skeletons */}
+
                         {filterable && (
                             <>
                                 <Skeleton className="h-8 w-[120px] hidden lg:flex" />
@@ -53,7 +51,6 @@ export function DataTableSkeleton({
                 </div>
             )}
 
-            {/* Table Skeleton */}
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -79,7 +76,6 @@ export function DataTableSkeleton({
                 </Table>
             </div>
 
-            {/* Pagination Skeleton */}
             {showPagination && (
                 <div className="flex items-center justify-between px-2">
                     <Skeleton className="h-4 w-[120px]" />
@@ -103,4 +99,5 @@ export function DataTableSkeleton({
         </div>
     )
 }
+
 

@@ -68,7 +68,7 @@ export function ConfirmDialog({
                         disabled={isLoading || loading}
                         className={
                             variant === "destructive"
-                                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                ? "bg-destructive text-white hover:bg-destructive/90"
                                 : ""
                         }
                     >
@@ -80,7 +80,6 @@ export function ConfirmDialog({
     )
 }
 
-// Hook để sử dụng ConfirmDialog dễ dàng hơn
 export function useConfirmDialog() {
     const [open, setOpen] = React.useState(false)
     const [config, setConfig] = React.useState<{

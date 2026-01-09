@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-require-imports */
 "use client"
 
 import * as React from "react"
-import { List, Table2, Plus, RefreshCw } from "lucide-react"
+import { List, Table2, Plus, RefreshCw, Trash2, CheckCircle, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTable, useBulkActions, useConfirmDialog } from "@/components/data-table"
@@ -17,7 +18,7 @@ import {
     deleteCategories,
     updateCategoriesStatus,
 } from "@/features/admin/categories/actions"
-import { CategoryWithChildren, CategoryFormData, ActiveStatus } from "@/features/admin/categories/types"
+import { CategoryWithChildren, CategoryFormData, ActiveStatus, CategoryBulkUpdate } from "@/features/admin/categories/types"
 import { toast } from "sonner"
 import PageHeading from "@/components/page-heading"
 
@@ -31,7 +32,6 @@ export default function CategoriesPage() {
 
     const { confirm, ConfirmDialog } = useConfirmDialog()
 
-    // Load categories
     const loadCategories = React.useCallback(async () => {
         setLoading(true)
         try {
@@ -48,7 +48,6 @@ export default function CategoriesPage() {
         loadCategories()
     }, [loadCategories])
 
-    // Flatten tree for table view
     const flattenCategories = (cats: CategoryWithChildren[]): CategoryWithChildren[] => {
         return cats.reduce((acc: CategoryWithChildren[], cat) => {
             acc.push(cat)
@@ -61,9 +60,8 @@ export default function CategoriesPage() {
 
     const flatCategories = React.useMemo(() => flattenCategories(categories), [categories])
 
-    // Bulk actions
-    const bulkActions = useBulkActions<CategoryWithChildren>({
-        onDelete: async (items) => {
+    const bulkActions = useBulkActions<CategoryWithChildren, CategoryBulkUpdate>({
+        onDelete: async (items: CategoryWithChildren[]) => {
             const result = await deleteCategories(items.map((i) => i.id))
             if (result.success) {
                 toast.success(`Đã xóa ${items.length} danh mục`)
@@ -72,21 +70,22 @@ export default function CategoriesPage() {
                 toast.error(result.error || "Không thể xóa danh mục")
             }
         },
-        onUpdate: async (items, updates) => {
-            const result = await updateCategoriesStatus(
-                items.map((i) => i.id),
-                updates.status
-            )
-            if (result.success) {
-                toast.success(`Đã cập nhật ${items.length} danh mục`)
-                loadCategories()
-            } else {
-                toast.error(result.error || "Không thể cập nhật danh mục")
+        onUpdate: async (items: CategoryWithChildren[], updates: CategoryBulkUpdate) => {
+            if (updates.status) {
+                const result = await updateCategoriesStatus(
+                    items.map((i) => i.id),
+                    updates.status
+                )
+                if (result.success) {
+                    toast.success(`Đã cập nhật ${items.length} danh mục`)
+                    loadCategories()
+                } else {
+                    toast.error(result.error || "Không thể cập nhật danh mục")
+                }
             }
         },
     })
 
-    // Handlers
     const handleAdd = () => {
         setSelectedCategory(null)
         setDialogOpen(true)
@@ -211,31 +210,56 @@ export default function CategoriesPage() {
                             bulkActions={[
                                 bulkActions.createBulkAction({
                                     label: "Xóa",
-                                    icon: require("lucide-react").Trash2,
+                                    icon: Trash2,
                                     variant: "destructive",
-                                    onClick: bulkActions.handleBulkDelete,
+                                    onClick: async (items: CategoryWithChildren[]) => {
+                                        const result = await deleteCategories(items.map((i) => i.id))
+                                        if (result.success) {
+                                            toast.success(`Đã xóa ${items.length} danh mục`)
+                                            loadCategories()
+                                        } else {
+                                            toast.error(result.error || "Không thể xóa danh mục")
+                                        }
+                                    },
                                     confirmBefore: {
                                         title: "Xóa danh mục",
-                                        description: (count) =>
-                                            `Bạn có chắc chắn muốn xóa ${count} danh mục?`,
+                                        description: (count: number) =>
+                                            `Bạn có chắc chắn muốn xóa ${count} danh mục? Hành động này không thể hoàn tác.`,
+                                        confirmText: "Xóa",
                                     },
                                 }),
                                 bulkActions.createBulkAction({
                                     label: "Kích hoạt",
-                                    icon: require("lucide-react").CheckCircle,
-                                    onClick: (items) =>
-                                        bulkActions.handleBulkUpdate(items, {
-                                            status: ActiveStatus.ACTIVE,
-                                        }),
+                                    icon: CheckCircle,
+                                    onClick: async (items: CategoryWithChildren[]) => {
+                                        const result = await updateCategoriesStatus(
+                                            items.map((i) => i.id),
+                                            ActiveStatus.ACTIVE
+                                        )
+                                        if (result.success) {
+                                            toast.success(`Đã kích hoạt ${items.length} danh mục`)
+                                            loadCategories()
+                                        } else {
+                                            toast.error(result.error || "Không thể cập nhật danh mục")
+                                        }
+                                    },
                                 }),
                                 bulkActions.createBulkAction({
                                     label: "Vô hiệu hóa",
-                                    icon: require("lucide-react").XCircle,
+                                    icon: XCircle,
                                     variant: "outline",
-                                    onClick: (items) =>
-                                        bulkActions.handleBulkUpdate(items, {
-                                            status: ActiveStatus.INACTIVE,
-                                        }),
+                                    onClick: async (items: CategoryWithChildren[]) => {
+                                        const result = await updateCategoriesStatus(
+                                            items.map((i) => i.id),
+                                            ActiveStatus.INACTIVE
+                                        )
+                                        if (result.success) {
+                                            toast.success(`Đã vô hiệu hóa ${items.length} danh mục`)
+                                            loadCategories()
+                                        } else {
+                                            toast.error(result.error || "Không thể cập nhật danh mục")
+                                        }
+                                    },
                                 }),
                             ]}
                         />

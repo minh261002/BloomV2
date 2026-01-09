@@ -43,4 +43,10 @@ export type MoveCategoryPayload = {
   newSortOrder: number;
 };
 
+export type CategoryBulkUpdate = {
+  status?: ActiveStatus;
+  featured?: boolean;
+  parentId?: string | null;
+};
+
 export { ActiveStatus };
