@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import React from "react";
 
 const Home = () => {
