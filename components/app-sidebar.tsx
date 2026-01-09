@@ -33,32 +33,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: true,
       },
       {
-        title: "Danh mục sản phẩm",
-        url: "/admin/categories",
-        icon: ListTree,
-        isActive: true,
-      },
-      {
-        title: "Thương hiệu",
-        url: "/admin/brands",
-        icon: BadgeCheckIcon,
-        isActive: true,
-      },
-
-      {
         title: "Sản phẩm",
         url: "#",
         icon: Package,
         isActive: true,
         items: [
           {
-            title: "Danh sách",
+            title: "Danh sách sản phẩm",
             url: "/admin/products",
           },
           {
-            title: "Thêm mới",
-            url: "/admin/products/new",
+            title: "Danh mục sản phẩm",
+            url: "/admin/categories",
           },
+          {
+            title: "Thương hiệu",
+            url: "/admin/brands",
+          },
+          {
+            title: "Bộ sưu tập",
+            url: "/admin/collections",
+          },
+
         ],
       },
       {
