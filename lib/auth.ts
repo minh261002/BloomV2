@@ -35,7 +35,7 @@ export const auth = betterAuth({
         // Optional: Use NEXT_PUBLIC_APP_URL for logo URL if available
         // e.g., const logoUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/images/logo.svg` : undefined;
         const logoUrl = undefined; // Set to your domain URL + /images/logo.svg when deployed
-        
+
         await resend.emails.send({
           from: "Bloom <onboarding@resend.dev>",
           to: [email],
