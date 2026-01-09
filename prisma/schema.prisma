@@ -12,12 +12,18 @@ datasource db {
   provider = "mysql"
 }
 
+enum UserRole {
+  ADMIN
+  USER
+}
+
 model User {
   id            String    @id
   name          String    @db.Text
   email         String
   emailVerified Boolean   @default(false)
   image         String?   @db.Text
+  role          UserRole  @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]

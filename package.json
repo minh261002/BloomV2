@@ -11,12 +11,16 @@
   "dependencies": {
     "@heroui/react": "^3.0.0-beta.3",
     "@heroui/styles": "^3.0.0-beta.3",
+    "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-mariadb": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "better-auth": "^1.4.10",
     "next": "16.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.70.0",
+    "resend": "^6.7.0",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
