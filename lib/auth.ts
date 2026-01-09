@@ -5,6 +5,10 @@ import { emailOTP } from "better-auth/plugins";
 import { admin } from "better-auth/plugins";
 import { resend } from "./resend";
 import { User } from "@prisma/client";
+import {
+  generateOTPEmailTemplate,
+  generateOTPEmailPlainText,
+} from "./email-templates/otp-email";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -28,11 +32,16 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
+        // Optional: Use NEXT_PUBLIC_APP_URL for logo URL if available
+        // e.g., const logoUrl = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/images/logo.svg` : undefined;
+        const logoUrl = undefined; // Set to your domain URL + /images/logo.svg when deployed
+        
         await resend.emails.send({
-          from: "Gift VN <onboarding@resend.dev>",
+          from: "Bloom <onboarding@resend.dev>",
           to: [email],
-          subject: "Verify your email",
-          html: `<p>Your OTP is ${otp}</p>`,
+          subject: "🌸 Mã xác thực OTP của bạn",
+          html: generateOTPEmailTemplate(otp, logoUrl),
+          text: generateOTPEmailPlainText(otp),
         });
       },
     }),
