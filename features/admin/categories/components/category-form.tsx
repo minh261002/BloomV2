@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CloudinaryUpload } from "@/components/cloudinary-upload"
+import { ImageUpload } from "@/components/image-upload"
 
 interface CategoryFormProps {
     category?: CategoryWithChildren | null
@@ -38,6 +38,8 @@ export function CategoryForm({
     const [image, setImage] = React.useState<string | undefined>(
         category?.image || undefined
     )
+    const [uploadedImages, setUploadedImages] = React.useState<string[]>([])
+    const initialImageRef = React.useRef(category?.image || "")
 
     const {
         register,
@@ -79,10 +81,13 @@ export function CategoryForm({
     }, [name, autoSlug, setValue])
 
     React.useEffect(() => {
-        if (image) {
-            setValue("image", image)
+        setValue("image", image || "")
+
+        // Track uploaded images (not initial image)
+        if (image && image !== initialImageRef.current && !uploadedImages.includes(image)) {
+            setUploadedImages(prev => [...prev, image])
         }
-    }, [image, setValue])
+    }, [image, setValue, uploadedImages])
 
     const getParentOptions = () => {
         if (!category) return categories
@@ -117,6 +122,26 @@ export function CategoryForm({
 
     const handleFormSubmit = async (data: CategoryFormData) => {
         await onSubmit(data)
+        // Clear tracking after successful submit
+        setUploadedImages([])
+    }
+
+    const handleCancel = async () => {
+        // Cleanup unused uploaded images when cancel
+        for (const url of uploadedImages) {
+            // Don't delete if it's being used in the form
+            if (url !== image) {
+                try {
+                    const filename = url.split("/").pop()
+                    await fetch(`/api/upload?filename=${filename}`, {
+                        method: "DELETE",
+                    })
+                } catch (error) {
+                    console.error("Cleanup error:", error)
+                }
+            }
+        }
+        onCancel()
     }
 
     return (
@@ -253,10 +278,9 @@ export function CategoryForm({
                 <TabsContent value="media" className="space-y-4">
                     <div className="space-y-2">
                         <Label>Hình ảnh danh mục</Label>
-                        <CloudinaryUpload
+                        <ImageUpload
                             value={image}
                             onChange={setImage}
-                            folder="categories"
                         />
                     </div>
                 </TabsContent>
@@ -296,7 +320,7 @@ export function CategoryForm({
             </Tabs>
 
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={onCancel}>
+                <Button type="button" variant="outline" onClick={handleCancel}>
                     Hủy
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
