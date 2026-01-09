@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Package, SquareTerminal, Users, FolderOpen, ListTree, BadgeCheckIcon } from "lucide-react";
+import {
+  Package,
+  SquareTerminal,
+  Users,
+  FolderOpen,
+  ListTree,
+  BadgeCheckIcon,
+  Warehouse,
+} from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -54,7 +62,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Bộ sưu tập",
             url: "/admin/collections",
           },
-
+        ],
+      },
+      {
+        title: "Quản lý kho",
+        url: "#",
+        icon: Warehouse,
+        isActive: true,
+        items: [
+          {
+            title: "Nhà cung cấp",
+            url: "/admin/suppliers",
+          },
+          {
+            title: "Phiếu nhập hàng",
+            url: "/admin/purchase-orders",
+          },
+          {
+            title: "Lịch sử kho",
+            url: "/admin/stock-movements",
+          },
         ],
       },
       {
