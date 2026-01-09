@@ -1,0 +1,272 @@
+"use client"
+
+import * as React from "react"
+import { List, Table2, Plus, RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DataTable, useBulkActions, useConfirmDialog } from "@/components/data-table"
+import { CategoryTreeView } from "@/features/admin/categories/components/category-tree-view"
+import { CategoryDialog } from "@/features/admin/categories/components/category-dialog"
+import { createCategoryColumns } from "@/features/admin/categories/components/category-columns"
+import {
+    getCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    deleteCategories,
+    updateCategoriesStatus,
+} from "@/features/admin/categories/actions"
+import { CategoryWithChildren, CategoryFormData, ActiveStatus } from "@/features/admin/categories/types"
+import { toast } from "sonner"
+
+export default function CategoriesPage() {
+    const [categories, setCategories] = React.useState<CategoryWithChildren[]>([])
+    const [loading, setLoading] = React.useState(true)
+    const [dialogOpen, setDialogOpen] = React.useState(false)
+    const [selectedCategory, setSelectedCategory] = React.useState<CategoryWithChildren | null>(null)
+    const [isSubmitting, setIsSubmitting] = React.useState(false)
+    const [viewMode, setViewMode] = React.useState<"tree" | "table">("tree")
+
+    const { confirm, ConfirmDialog } = useConfirmDialog()
+
+    // Load categories
+    const loadCategories = React.useCallback(async () => {
+        setLoading(true)
+        try {
+            const data = await getCategories()
+            setCategories(data)
+        } catch (error) {
+            toast.error("Không thể tải danh mục")
+        } finally {
+            setLoading(false)
+        }
+    }, [])
+
+    React.useEffect(() => {
+        loadCategories()
+    }, [loadCategories])
+
+    // Flatten tree for table view
+    const flattenCategories = (cats: CategoryWithChildren[]): CategoryWithChildren[] => {
+        return cats.reduce((acc: CategoryWithChildren[], cat) => {
+            acc.push(cat)
+            if (cat.children && cat.children.length > 0) {
+                acc.push(...flattenCategories(cat.children))
+            }
+            return acc
+        }, [])
+    }
+
+    const flatCategories = React.useMemo(() => flattenCategories(categories), [categories])
+
+    // Bulk actions
+    const bulkActions = useBulkActions<CategoryWithChildren>({
+        onDelete: async (items) => {
+            const result = await deleteCategories(items.map((i) => i.id))
+            if (result.success) {
+                toast.success(`Đã xóa ${items.length} danh mục`)
+                loadCategories()
+            } else {
+                toast.error(result.error || "Không thể xóa danh mục")
+            }
+        },
+        onUpdate: async (items, updates) => {
+            const result = await updateCategoriesStatus(
+                items.map((i) => i.id),
+                updates.status
+            )
+            if (result.success) {
+                toast.success(`Đã cập nhật ${items.length} danh mục`)
+                loadCategories()
+            } else {
+                toast.error(result.error || "Không thể cập nhật danh mục")
+            }
+        },
+    })
+
+    // Handlers
+    const handleAdd = () => {
+        setSelectedCategory(null)
+        setDialogOpen(true)
+    }
+
+    const handleEdit = (category: CategoryWithChildren) => {
+        setSelectedCategory(category)
+        setDialogOpen(true)
+    }
+
+    const handleDelete = (category: CategoryWithChildren) => {
+        confirm({
+            title: "Xóa danh mục",
+            description: `Bạn có chắc chắn muốn xóa danh mục "${category.name}"? ${
+                category._count?.children
+                    ? "Danh mục này có danh mục con. Vui lòng xóa danh mục con trước."
+                    : ""
+            }`,
+            confirmText: "Xóa",
+            variant: "destructive",
+            onConfirm: async () => {
+                const result = await deleteCategory(category.id)
+                if (result.success) {
+                    toast.success("Đã xóa danh mục thành công")
+                    loadCategories()
+                } else {
+                    toast.error(result.error || "Không thể xóa danh mục")
+                }
+            },
+        })
+    }
+
+    const handleSubmit = async (data: CategoryFormData) => {
+        setIsSubmitting(true)
+        try {
+            const result = selectedCategory
+                ? await updateCategory(selectedCategory.id, data)
+                : await createCategory(data)
+
+            if (result.success) {
+                toast.success(
+                    selectedCategory
+                        ? "Đã cập nhật danh mục thành công"
+                        : "Đã tạo danh mục thành công"
+                )
+                setDialogOpen(false)
+                loadCategories()
+            } else {
+                toast.error(result.error || "Có lỗi xảy ra")
+            }
+        } catch (error) {
+            toast.error("Có lỗi xảy ra khi lưu danh mục")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const columns = React.useMemo(
+        () => createCategoryColumns(handleEdit, handleDelete),
+        []
+    )
+
+    return (
+        <div className="container mx-auto py-6 space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Quản lý danh mục</h1>
+                    <p className="text-muted-foreground">
+                        Quản lý danh mục sản phẩm với cấu trúc cây
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" onClick={loadCategories}>
+                        <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={handleAdd}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Thêm danh mục
+                    </Button>
+                </div>
+            </div>
+
+            {/* View Toggle */}
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "tree" | "table")}>
+                <div className="flex items-center justify-between">
+                    <TabsList>
+                        <TabsTrigger value="tree">
+                            <List className="mr-2 h-4 w-4" />
+                            Cây danh mục
+                        </TabsTrigger>
+                        <TabsTrigger value="table">
+                            <Table2 className="mr-2 h-4 w-4" />
+                            Bảng
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
+
+                {/* Tree View */}
+                <TabsContent value="tree" className="mt-4">
+                    <div className="rounded-lg border bg-background">
+                        {loading ? (
+                            <div className="flex h-64 items-center justify-center">
+                                <div className="text-sm text-muted-foreground">
+                                    Đang tải...
+                                </div>
+                            </div>
+                        ) : (
+                            <CategoryTreeView
+                                categories={categories}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                onRefresh={loadCategories}
+                            />
+                        )}
+                    </div>
+                </TabsContent>
+
+                {/* Table View */}
+                <TabsContent value="table" className="mt-4">
+                    <DataTable
+                        columns={columns}
+                        data={flatCategories}
+                        loading={loading}
+                        searchKey="name"
+                        searchPlaceholder="Tìm kiếm danh mục..."
+                        filterableColumns={[
+                            {
+                                id: "status",
+                                title: "Trạng thái",
+                                options: [
+                                    { label: "Hoạt động", value: "ACTIVE" },
+                                    { label: "Không hoạt động", value: "INACTIVE" },
+                                ],
+                            },
+                        ]}
+                        bulkActions={[
+                            bulkActions.createBulkAction({
+                                label: "Xóa",
+                                icon: require("lucide-react").Trash2,
+                                variant: "destructive",
+                                onClick: bulkActions.handleBulkDelete,
+                                confirmBefore: {
+                                    title: "Xóa danh mục",
+                                    description: (count) =>
+                                        `Bạn có chắc chắn muốn xóa ${count} danh mục?`,
+                                },
+                            }),
+                            bulkActions.createBulkAction({
+                                label: "Kích hoạt",
+                                icon: require("lucide-react").CheckCircle,
+                                onClick: (items) =>
+                                    bulkActions.handleBulkUpdate(items, {
+                                        status: ActiveStatus.ACTIVE,
+                                    }),
+                            }),
+                            bulkActions.createBulkAction({
+                                label: "Vô hiệu hóa",
+                                icon: require("lucide-react").XCircle,
+                                variant: "outline",
+                                onClick: (items) =>
+                                    bulkActions.handleBulkUpdate(items, {
+                                        status: ActiveStatus.INACTIVE,
+                                    }),
+                            }),
+                        ]}
+                    />
+                </TabsContent>
+            </Tabs>
+
+            {/* Dialogs */}
+            <CategoryDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                category={selectedCategory}
+                categories={categories}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+            />
+            <ConfirmDialog />
+            <bulkActions.ConfirmDialog />
+        </div>
+    )
+}
+
